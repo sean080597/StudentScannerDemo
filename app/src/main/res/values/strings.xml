@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">StudentScannerLab</string>
+    <string name="txt_title">Title</string>
+    <string name="txt_desc">Description</string>
+    <string name="search">Search</string>
+    <string name="result_text_default">Please focus camera to QR Code</string>
+    <string name="export_excel">Export Excel</string>
+    <string name="not_found">Not Found</string>
+</resources>

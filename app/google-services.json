@@ -1,0 +1,187 @@
+{
+  "project_info": {
+    "project_number": "215043988187",
+    "firebase_url": "https://fir-testapp-a8657.firebaseio.com",
+    "project_id": "fir-testapp-a8657",
+    "storage_bucket": "fir-testapp-a8657.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:215043988187:android:454f2ceab9e89de5",
+        "android_client_info": {
+          "package_name": "com.example.luusean.firebaselogin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "215043988187-kffgtavgn23t85k58tgng0ng762a5tlc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.luusean.firebaselogin",
+            "certificate_hash": "c8bfc4fde7fe785365488dd7dcffbe194e844151"
+          }
+        },
+        {
+          "client_id": "215043988187-evc97ufs9rsl9mrap82j95h8vduqvkqh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSv2wO5a6GbIWMkRzpfjdaXBm2ferYUnM"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "215043988187-evc97ufs9rsl9mrap82j95h8vduqvkqh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:215043988187:android:405956144c4e47b4",
+        "android_client_info": {
+          "package_name": "com.example.luusean.firebasetestapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "215043988187-4ae6eaugrm0elprggt25pecjirig4pi1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.luusean.firebasetestapp",
+            "certificate_hash": "c8bfc4fde7fe785365488dd7dcffbe194e844151"
+          }
+        },
+        {
+          "client_id": "215043988187-evc97ufs9rsl9mrap82j95h8vduqvkqh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSv2wO5a6GbIWMkRzpfjdaXBm2ferYUnM"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "215043988187-evc97ufs9rsl9mrap82j95h8vduqvkqh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:215043988187:android:57e9c49f2b07ffe0",
+        "android_client_info": {
+          "package_name": "com.luusean.studentscannerdemo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "215043988187-tj7bo1gptqlc403hd616igags9qfmc41.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.luusean.studentscannerdemo",
+            "certificate_hash": "d0bf17088e1a5bea6a38b6f7a2bd86dadc614e7b"
+          }
+        },
+        {
+          "client_id": "215043988187-evc97ufs9rsl9mrap82j95h8vduqvkqh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSv2wO5a6GbIWMkRzpfjdaXBm2ferYUnM"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "215043988187-evc97ufs9rsl9mrap82j95h8vduqvkqh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:215043988187:android:7d58c2f8d0893c80",
+        "android_client_info": {
+          "package_name": "com.luusean.studentscannerlab"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "215043988187-3u93m68l2hoivr8q1uakf15of1t3j0jn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.luusean.studentscannerlab",
+            "certificate_hash": "d0bf17088e1a5bea6a38b6f7a2bd86dadc614e7b"
+          }
+        },
+        {
+          "client_id": "215043988187-evc97ufs9rsl9mrap82j95h8vduqvkqh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSv2wO5a6GbIWMkRzpfjdaXBm2ferYUnM"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "215043988187-evc97ufs9rsl9mrap82j95h8vduqvkqh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

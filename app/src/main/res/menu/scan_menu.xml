@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/continuousScan"
+        android:icon="@drawable/ic_search"
+        android:onClick="onContinuousScanAction"
+        android:title="@string/search"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/exportExcel"
+        android:icon="@drawable/ic_import_export"
+        android:onClick="onExportAction"
+        android:title="@string/export_excel"
+        app:showAsAction="ifRoom" />
+</menu>

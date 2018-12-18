@@ -10,6 +10,8 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,6 +37,7 @@ public class ScannerActivity extends AppCompatActivity {
     private ArrayList<Student> ls_students;
     private ArrayList<Student> ls_stored_students, ls_removed_students;
     private RecyclerView recyclerView;
+    private String excelName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,7 +120,32 @@ public class ScannerActivity extends AppCompatActivity {
     }
 
     public void onExportAction(MenuItem mi) {
-        Toast.makeText(this, "Coming Soon", Toast.LENGTH_LONG).show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(ScannerActivity.this);
+        builder.setTitle("Export .xlsx");
+        builder.setMessage("Enter name to export(.xlsx)");
+
+        final EditText edtNameExcel = new EditText(ScannerActivity.this);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+        );
+        edtNameExcel.setLayoutParams(lp);
+        builder.setView(edtNameExcel);
+        builder.setIcon(R.drawable.ic_export_excel);
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                excelName = edtNameExcel.getText().toString();
+                Toast.makeText(getApplicationContext(), excelName, Toast.LENGTH_LONG).show();
+            }
+        });
+        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 
     public void onContinuousScanAction(MenuItem mi) {

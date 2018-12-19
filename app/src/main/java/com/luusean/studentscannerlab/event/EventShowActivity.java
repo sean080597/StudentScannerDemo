@@ -182,7 +182,7 @@ public class EventShowActivity extends AppCompatActivity {
                 if(wantToCloseDialog){
                     excelFileName = edtNameExcel.getText().toString();
                     pathToSaveExcelFile = Environment.getExternalStorageDirectory().toString();
-                    if(saveExcelFile(excelFileName, pathToSaveExcelFile)) {
+                    if(saveExcelFile(excelFileName, pathToSaveExcelFile, lsToShow)) {
                         Toast.makeText(EventShowActivity.this,
                                 "Lưu thành công " + excelFileName +".xls",
                                 Toast.LENGTH_SHORT).show();
@@ -195,7 +195,7 @@ public class EventShowActivity extends AppCompatActivity {
     }
 
     //method to save excel
-    private boolean saveExcelFile(String fileName, String filePath){
+    private boolean saveExcelFile(String fileName, String filePath, List<StudentObject> lsToShow){
         if (!isExternalStorageAvailable() && isExternalStorageReadOnly()) {
             Toast.makeText(EventShowActivity.this, getString(R.string.storage_not_available_or_readonly), Toast.LENGTH_SHORT).show();
             return false;

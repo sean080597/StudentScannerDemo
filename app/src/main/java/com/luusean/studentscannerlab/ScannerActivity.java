@@ -37,11 +37,9 @@ public class ScannerActivity extends AppCompatActivity {
 
     //DAO --> Data Access Object
     private EventObjectDao eventObjectDao;//sql access object
-    private EventObject eventObject;
     private EventStudentObject eventStudentObject;
     private EventStudentObjectDao eventStudentObjectDao;
     private StudentObjectDao studentObjectDao;
-    private StudentObject studentObject;
 
     private List<StudentObject> ls_students;
     private List<StudentObject> ls_stored_students;

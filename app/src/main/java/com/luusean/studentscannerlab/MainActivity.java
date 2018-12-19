@@ -9,7 +9,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,9 +30,7 @@ import com.luusean.studentscannerlab.database.EventObjectDao;
 import com.luusean.studentscannerlab.database.StudentObject;
 import com.luusean.studentscannerlab.database.StudentObjectDao;
 import com.luusean.studentscannerlab.event.EventAdapter;
-import com.luusean.studentscannerlab.student.StudentAdapter;
 
-import java.util.Comparator;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -46,7 +43,6 @@ public class MainActivity extends AppCompatActivity {
     private StudentObjectDao studentObjectDao;
     private StudentObject studentObject;
 
-    private TextView txtEmpty;
     private RecyclerView recyclerView;
     private List<StudentObject> ls_so;
 
@@ -61,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycleView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        txtEmpty = findViewById(R.id.empty_view);
+        TextView txtEmpty = findViewById(R.id.empty_view);
 
         //Initialise DAO
         eventObjectDao = initEventObjectDb();

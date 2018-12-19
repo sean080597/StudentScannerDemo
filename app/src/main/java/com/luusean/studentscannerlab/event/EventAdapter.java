@@ -3,8 +3,6 @@ package com.luusean.studentscannerlab.event;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -15,9 +13,7 @@ import android.widget.TextView;
 
 import com.luusean.studentscannerlab.R;
 import com.luusean.studentscannerlab.database.EventObject;
-import com.luusean.studentscannerlab.student.Student;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> {

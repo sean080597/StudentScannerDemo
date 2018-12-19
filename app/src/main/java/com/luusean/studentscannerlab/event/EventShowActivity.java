@@ -29,13 +29,6 @@ public class EventShowActivity extends AppCompatActivity {
     //DAO --> Data Access Object
     private EventStudentObjectDao eventStudentObjectDao;
     private StudentObjectDao studentObjectDao;
-    
-    private RecyclerView recyclerView;
-    private TextView txtEmpty;
-    //to know what event to show
-    private Long event_id;
-    //list to show students of the event
-    private List<StudentObject> lsToShow;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,17 +36,17 @@ public class EventShowActivity extends AppCompatActivity {
         setContentView(R.layout.activity_event_show);
 
         //mapping recyclerView
-        recyclerView = findViewById(R.id.rev_show_stu_of_event);
+        RecyclerView recyclerView = findViewById(R.id.rev_show_stu_of_event);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        txtEmpty = findViewById(R.id.empty_view);
+        TextView txtEmpty = findViewById(R.id.empty_view);
 
         //Initialise DAO
         eventStudentObjectDao = initEventStudentDb();
         studentObjectDao = initStudentObjectDb();
 
         //get event id from intent
-        event_id = Objects.requireNonNull(getIntent().getExtras()).getLong("event_id");
+        Long event_id = Objects.requireNonNull(getIntent().getExtras()).getLong("event_id");
 
         //list id of student to lockup on listStudents
         List<EventStudentObject> ls_es = eventStudentObjectDao.queryBuilder()
@@ -61,7 +54,7 @@ public class EventShowActivity extends AppCompatActivity {
                 .list();
         List<StudentObject> ls_so = studentObjectDao.queryBuilder().build().list();
 
-        lsToShow = new ArrayList<>();
+        List<StudentObject> lsToShow = new ArrayList<>();
         for(EventStudentObject es : ls_es){
             for(StudentObject so : ls_so){
                 if(so.getId().equals(es.getStu_id())){

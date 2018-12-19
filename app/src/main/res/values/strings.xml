@@ -6,4 +6,5 @@
     <string name="result_text_default">Please focus camera to QR Code</string>
     <string name="export_excel">Export Excel</string>
     <string name="not_found">Not Found</string>
+    <string name="invalid_input">Invalid input</string>
 </resources>

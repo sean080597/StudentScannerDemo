@@ -2,26 +2,28 @@ package com.luusean.studentscannerlab;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
+import com.luusean.studentscannerlab.database.DaoMaster;
+import com.luusean.studentscannerlab.database.DaoSession;
+import com.luusean.studentscannerlab.database.EventObject;
+import com.luusean.studentscannerlab.database.EventObjectDao;
+import com.luusean.studentscannerlab.database.EventStudentObject;
+import com.luusean.studentscannerlab.database.EventStudentObjectDao;
 import com.luusean.studentscannerlab.student.Student;
 import com.luusean.studentscannerlab.student.StudentAdapter;
 
@@ -30,14 +32,20 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 public class ScannerActivity extends AppCompatActivity {
 
+    //DAO --> Data Access Object
+    private EventObjectDao eventObjectDao;//sql access object
+    private EventObject eventObject;
+    private EventStudentObject eventStudentObject;
+    private EventStudentObjectDao eventStudentObjectDao;
+
     private ArrayList<Student> ls_students;
-    private ArrayList<Student> ls_stored_students, ls_removed_students;
+    private ArrayList<Student> ls_stored_students;
     private RecyclerView recyclerView;
-    private String excelName;
+
+    private Long event_id; //to save scanned student to this event id
+//    private String excelName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,13 +56,20 @@ public class ScannerActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         ls_stored_students = new ArrayList<>();
-        ls_removed_students = new ArrayList<>();
 
         //receive ls_r
         Bundle bundle = getIntent().getExtras();
         assert bundle != null;
         ls_students = bundle.getParcelableArrayList("list");
 
+        //[GreenDAO] initiate
+        eventObjectDao = initEventObjectDb();
+        eventStudentObjectDao = initEventStudentDb();
+
+        event_id = getMaxEventId(eventObjectDao).getId();
+    }
+
+    private void initCameraScan(){
         IntentIntegrator integrator = new IntentIntegrator(ScannerActivity.this);
         integrator.setDesiredBarcodeFormats(IntentIntegrator.ONE_D_CODE_TYPES);
         integrator.setPrompt("Scan Student ID");
@@ -73,7 +88,6 @@ public class ScannerActivity extends AppCompatActivity {
             if (intentResult.getContents() == null) {
                 Toast.makeText(this, "Cancelled", Toast.LENGTH_LONG).show();
             } else {
-                Toast.makeText(this, "Found: " + intentResult.getContents(), Toast.LENGTH_LONG).show();
                 boolean isFound = false;//check if found student
                 for (Student s : ls_students) {
                     if (s.getId().equals(intentResult.getContents())) {
@@ -83,14 +97,21 @@ public class ScannerActivity extends AppCompatActivity {
                                 s.getLname(),
                                 s.getClassroom()
                         ));
-                        ls_removed_students.add(s);
+
+                        //save to DB
+                        eventStudentObject = new EventStudentObject(null, event_id, s.getId());
+                        eventStudentObjectDao.insert(eventStudentObject);
+
+                        //remove student from origin list
                         ls_students.remove(s);
-                        isFound = true;//set found to check if found student
+                        //set found to check if found student
+                        isFound = true;
+                        Toast.makeText(this, "Found: " + intentResult.getContents(), Toast.LENGTH_LONG).show();
                         break;
                     }
                 }
                 if (!isFound) {
-                    if(isLsStudentsContains(ls_removed_students, intentResult.getContents())){
+                    if(isLsStudentsContains(ls_stored_students, intentResult.getContents())){
                         Toast.makeText(this, "Scanned: " + intentResult.getContents(), Toast.LENGTH_LONG).show();
                     }else{
                         Toast.makeText(this, "Not found: " + intentResult.getContents(), Toast.LENGTH_LONG).show();
@@ -123,6 +144,7 @@ public class ScannerActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(ScannerActivity.this);
         builder.setTitle("Export .xlsx");
         builder.setMessage("Enter name to export(.xlsx)");
+        builder.setCancelable(false);
 
         final EditText edtNameExcel = new EditText(ScannerActivity.this);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
@@ -131,17 +153,16 @@ public class ScannerActivity extends AppCompatActivity {
         );
         edtNameExcel.setLayoutParams(lp);
         builder.setView(edtNameExcel);
-        builder.setIcon(R.drawable.ic_export_excel);
+        builder.setIcon(R.drawable.ic_export_excel_black);
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                excelName = edtNameExcel.getText().toString();
-                Toast.makeText(getApplicationContext(), excelName, Toast.LENGTH_LONG).show();
+                // TODO Auto-generated method stub
             }
         });
-        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
+                // TODO Auto-generated method stub
             }
         });
         AlertDialog alertDialog = builder.create();
@@ -149,14 +170,7 @@ public class ScannerActivity extends AppCompatActivity {
     }
 
     public void onContinuousScanAction(MenuItem mi) {
-        IntentIntegrator integrator = new IntentIntegrator(ScannerActivity.this);
-        integrator.setDesiredBarcodeFormats(IntentIntegrator.ONE_D_CODE_TYPES);
-        integrator.setPrompt("Scan Student ID");
-        integrator.setCameraId(0);
-        integrator.setOrientationLocked(true);
-        integrator.setBeepEnabled(false);
-        integrator.setBarcodeImageEnabled(false);
-        integrator.initiateScan();
+        initCameraScan();
     }
 
     private boolean isLsStudentsContains(ArrayList<Student> ls_students, String stuid) {
@@ -165,15 +179,16 @@ public class ScannerActivity extends AppCompatActivity {
         }
         return false;
     }
-
+    //detect click back button
     @Override
     public void onBackPressed() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Discard Scanned");
+        builder.setCancelable(false);
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                finish();
+                // TODO Auto-generated method stub
             }
         });
         builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -182,8 +197,69 @@ public class ScannerActivity extends AppCompatActivity {
                 //Do nothing
             }
         });
+        builder.setNeutralButton("Back", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //send Result_ok to reload list events in MainActivity
+                setResult(RESULT_OK, new Intent());
+                finish();
+            }
+        });
         builder.setMessage("Do you wanna discard this scanned list?");
+
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //get list of students of event id
+                List<EventStudentObject> ls_es = eventStudentObjectDao.queryBuilder()
+                        .where(EventStudentObjectDao.Properties.Event_id.eq(event_id))
+                        .list();
+                //delete all of list
+//                for(EventStudentObject es : ls_es){
+//                    eventStudentObjectDao.delete(es);
+//                }
+                eventStudentObjectDao.deleteInTx(ls_es);
+                //delete created event
+                eventObjectDao.deleteByKey(event_id);
+
+                //send Result_ok to reload list events in MainActivity
+                setResult(RESULT_OK, new Intent());
+
+                //finish & back to MainActivity
+                finish();
+            }
+        });
+    }
+
+    //initiate EventObject DB
+    private EventObjectDao initEventObjectDb() {
+        //create db file if not exist
+        String DB_NAME = "event_db";
+        DaoMaster.DevOpenHelper masterHelper = new DaoMaster.DevOpenHelper(this, DB_NAME, null);
+        //get the created db file
+        SQLiteDatabase db = masterHelper.getWritableDatabase();
+        DaoMaster master = new DaoMaster(db);//create masterDao
+        DaoSession masterSession = master.newSession();//create session
+        return masterSession.getEventObjectDao();
+    }
+
+    //initiate EventObject DB
+    private EventStudentObjectDao initEventStudentDb() {
+        //create db file if not exist
+        String DB_NAME = "event_student_db";
+        DaoMaster.DevOpenHelper masterHelper = new DaoMaster.DevOpenHelper(this, DB_NAME, null);
+        //get the created db file
+        SQLiteDatabase db = masterHelper.getWritableDatabase();
+        DaoMaster master = new DaoMaster(db);//create masterDao
+        DaoSession masterSession = master.newSession();//create session
+        return masterSession.getEventStudentObjectDao();
+    }
+
+    //get max event id
+    private EventObject getMaxEventId(EventObjectDao eventObjectDao){
+        List<EventObject> ls_es = eventObjectDao.queryBuilder().orderDesc(EventObjectDao.Properties.Id).limit(1).list();
+        return ls_es.get(0);
     }
 }

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/nav_search"
-        android:icon="@drawable/ic_search"
+        android:icon="@drawable/ic_create_new"
         android:onClick="onAddAction"
         android:title="@string/search"
         app:showAsAction="ifRoom" />

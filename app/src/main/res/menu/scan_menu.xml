@@ -11,7 +11,7 @@
 
     <item
         android:id="@+id/exportExcel"
-        android:icon="@drawable/ic_export_excel"
+        android:icon="@drawable/ic_export_excel_white"
         android:onClick="onExportAction"
         android:title="@string/export_excel"
         app:showAsAction="ifRoom" />

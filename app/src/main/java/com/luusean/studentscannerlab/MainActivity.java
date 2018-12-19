@@ -1,28 +1,34 @@
 package com.luusean.studentscannerlab;
 
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.luusean.studentscannerlab.blog.BlogItem;
-import com.luusean.studentscannerlab.blog.CustomAdapter;
+import com.luusean.studentscannerlab.database.DaoMaster;
+import com.luusean.studentscannerlab.database.DaoSession;
+import com.luusean.studentscannerlab.database.EventObject;
+import com.luusean.studentscannerlab.database.EventObjectDao;
 import com.luusean.studentscannerlab.student.Student;
 import com.luusean.studentscannerlab.student.StudentAdapter;
-import com.squareup.picasso.OkHttp3Downloader;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,16 +39,26 @@ import javax.annotation.Nullable;
 
 public class MainActivity extends AppCompatActivity {
 
+    //DAO --> Data Access Object
+    private EventObjectDao eventObjectDao;//sql access object
+    private EventObject eventObject;
+
+    private RecyclerView recyclerView;
     private ArrayList<Student> ls_students;
+    private final int REQUEST_CODE = 1997;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final RecyclerView recyclerView = findViewById(R.id.recycleView);
+        //mapping recyclerView
+        recyclerView = findViewById(R.id.recycleView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        //Initialise DAO
+        eventObjectDao = initEventObjectDb();
 
         //FireBase
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -56,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
                 if(e != null){
                     Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }else{
-                    ls_students = new ArrayList<Student>();
+                    ls_students = new ArrayList<>();
                     assert queryDocumentSnapshots != null;
                     for (DocumentSnapshot doc : queryDocumentSnapshots){
                         ls_students.add(new Student(
@@ -67,12 +83,16 @@ public class MainActivity extends AppCompatActivity {
                         ));
                     }
 
-                    Collections.sort(ls_students, StudentsAscComparator);
-                    StudentAdapter adapter = new StudentAdapter(MainActivity.this, ls_students);
-                    recyclerView.setAdapter(adapter);
+//                    Collections.sort(ls_students, StudentsAscComparator);
+//                    StudentAdapter adapter = new StudentAdapter(MainActivity.this, ls_students);
+//                    recyclerView.setAdapter(adapter);
                 }
             }
         });
+
+        List<EventObject> ls_es = eventObjectDao.queryBuilder().orderDesc(EventObjectDao.Properties.Id).build().list();
+        EventAdapter adapter = new EventAdapter(MainActivity.this, ls_es);
+        recyclerView.setAdapter(adapter);
     }
 
     @Override
@@ -83,11 +103,74 @@ public class MainActivity extends AppCompatActivity {
     }
     //action for menu item - add
     public void onAddAction(MenuItem mi) {
-        Intent intent = new Intent(MainActivity.this, ScannerActivity.class);
-        Bundle bundle = new Bundle();
-        bundle.putParcelableArrayList("list", ls_students);
-        intent.putExtras(bundle);
-        startActivity(intent);
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("Create Event");
+        builder.setMessage("Enter your event name");
+
+        final EditText edtEventName = new EditText(MainActivity.this);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+        );
+        edtEventName.setLayoutParams(lp);
+        builder.setView(edtEventName);
+        builder.setCancelable(false);
+        builder.setIcon(R.drawable.ic_export_excel_black);
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // TODO Auto-generated method stub
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                // TODO Auto-generated method stub
+            }
+        });
+        final AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                Boolean wantToCloseDialog = false;
+                //check if null input event name
+                if(TextUtils.isEmpty(edtEventName.getText().toString())){
+                    edtEventName.setError(getString(R.string.invalid_input));
+                    edtEventName.requestFocus();
+                }else{
+                    wantToCloseDialog = true;
+                }
+                //dismiss dialog
+                if(wantToCloseDialog){
+                    //save to DB & reload recyclerView
+                    eventObject = new EventObject(null, edtEventName.getText().toString(), null);
+                    eventObjectDao.insert(eventObject);
+
+                    //dismiss dialog
+                    alertDialog.dismiss();
+
+                    //move to ScannerActivity
+                    Intent intent = new Intent(MainActivity.this, ScannerActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelableArrayList("list", ls_students);
+                    intent.putExtras(bundle);
+                    startActivityForResult(intent, REQUEST_CODE);
+                }
+            }
+        });
+    }
+    //reload list events when back from ScannerActivity
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == REQUEST_CODE && resultCode == RESULT_OK){
+            //reload list events
+            List<EventObject> ls_es = eventObjectDao.queryBuilder().orderDesc(EventObjectDao.Properties.Id).build().list();
+            EventAdapter adapter = new EventAdapter(MainActivity.this, ls_es);
+            recyclerView.setAdapter(adapter);
+        }
     }
 
     // Comparator for Ascending Order
@@ -98,4 +181,16 @@ public class MainActivity extends AppCompatActivity {
             return sub1.compareToIgnoreCase(sub2);
         }
     };
+
+    //initiate EventObject DB
+    private EventObjectDao initEventObjectDb() {
+        //create db file if not exist
+        String DB_NAME = "event_db";
+        DaoMaster.DevOpenHelper masterHelper = new DaoMaster.DevOpenHelper(this, DB_NAME, null);
+        //get the created db file
+        SQLiteDatabase db = masterHelper.getWritableDatabase();
+        DaoMaster master = new DaoMaster(db);//create masterDao
+        DaoSession masterSession = master.newSession();//create session
+        return masterSession.getEventObjectDao();
+    }
 }

@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
@@ -47,6 +48,7 @@ public class ScannerActivity extends AppCompatActivity {
     private List<StudentObject> ls_students;
     private List<StudentObject> ls_stored_students;
     private RecyclerView recyclerView;
+    private TextView txtEmpty;
 
     private Long event_id; //to save scanned student to this event id
 //    private String excelName;
@@ -59,6 +61,7 @@ public class ScannerActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.rev_stored_students);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        txtEmpty = findViewById(R.id.empty_view);
 
         //[GreenDAO] initiate
         eventObjectDao = initEventObjectDb();
@@ -68,6 +71,11 @@ public class ScannerActivity extends AppCompatActivity {
         event_id = getMaxEventId(eventObjectDao).getId();
         ls_students = studentObjectDao.queryBuilder().orderDesc(StudentObjectDao.Properties.Lname).build().list();
         ls_stored_students = new ArrayList<>();
+
+        if(ls_stored_students.isEmpty()){
+            recyclerView.setVisibility(View.GONE);
+            txtEmpty.setVisibility(View.VISIBLE);
+        }
     }
 
     private void initCameraScan(){
@@ -100,7 +108,7 @@ public class ScannerActivity extends AppCompatActivity {
                                 s.getClassroom()
                         ));
 
-                        //save to DB
+                        //save EventStudent to DB
                         eventStudentObject = new EventStudentObject(null, event_id, s.getId());
                         eventStudentObjectDao.insert(eventStudentObject);
 
@@ -108,6 +116,12 @@ public class ScannerActivity extends AppCompatActivity {
                         ls_students.remove(s);
                         //set found to check if found student
                         isFound = true;
+
+                        //set VISIBLE to show recyclerView
+                        if(!ls_stored_students.isEmpty()) {
+                            recyclerView.setVisibility(View.VISIBLE);
+                            txtEmpty.setVisibility(View.GONE);
+                        }
                         Toast.makeText(this, "Found: " + intentResult.getContents(), Toast.LENGTH_LONG).show();
                         break;
                     }
@@ -244,7 +258,7 @@ public class ScannerActivity extends AppCompatActivity {
         return masterSession.getEventObjectDao();
     }
 
-    //initiate EventObject DB
+    //initiate EventStudentObject DB
     private EventStudentObjectDao initEventStudentDb() {
         //create db file if not exist
         String DB_NAME = "event_student_db";
@@ -262,7 +276,7 @@ public class ScannerActivity extends AppCompatActivity {
         return ls_es.get(0);
     }
 
-    //initiate EventObject DB
+    //initiate StudentObject DB
     private StudentObjectDao initStudentObjectDb() {
         //create db file if not exist
         String DB_NAME = "student_db";

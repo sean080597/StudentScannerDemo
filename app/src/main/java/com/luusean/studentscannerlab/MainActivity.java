@@ -118,10 +118,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //get list students offline --> get above
-//        ls_so = studentObjectDao.queryBuilder().orderAsc(StudentObjectDao.Properties.Lname).build().list();
-//        StudentAdapter adapter = new StudentAdapter(MainActivity.this, ls_so);
-
         List<EventObject> ls_events = eventObjectDao.queryBuilder()
                 .orderDesc(EventObjectDao.Properties.Id).build().list();
         if(ls_events.isEmpty()){
@@ -130,6 +126,10 @@ public class MainActivity extends AppCompatActivity {
         }else{
             recyclerView.setVisibility(View.VISIBLE);
             txtEmpty.setVisibility(View.GONE);
+
+            //get list students offline --> get above
+//            ls_so = studentObjectDao.queryBuilder().orderAsc(StudentObjectDao.Properties.Lname).build().list();
+//            StudentAdapter adapter = new StudentAdapter(MainActivity.this, ls_so);
             EventAdapter adapter = new EventAdapter(this, ls_events);
             recyclerView.setAdapter(adapter);
         }
@@ -230,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
         return masterSession.getEventObjectDao();
     }
 
-    //initiate EventObject DB
+    //initiate Student DB
     private StudentObjectDao initStudentObjectDb() {
         //create db file if not exist
         String DB_NAME = "student_db";

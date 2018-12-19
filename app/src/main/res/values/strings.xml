@@ -8,5 +8,6 @@
     <string name="not_found">Not Found</string>
     <string name="invalid_input">Invalid input</string>
     <string name="no_event_available">No events</string>
+    <string name="no_student_available">No students</string>
     <string name="hall_a0820">Hội trường A.08.20</string>
 </resources>

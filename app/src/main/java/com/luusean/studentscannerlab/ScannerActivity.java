@@ -217,9 +217,6 @@ public class ScannerActivity extends AppCompatActivity {
                         .where(EventStudentObjectDao.Properties.Event_id.eq(event_id))
                         .list();
                 //delete all of list
-//                for(EventStudentObject es : ls_es){
-//                    eventStudentObjectDao.delete(es);
-//                }
                 eventStudentObjectDao.deleteInTx(ls_es);
                 //delete created event
                 eventObjectDao.deleteByKey(event_id);

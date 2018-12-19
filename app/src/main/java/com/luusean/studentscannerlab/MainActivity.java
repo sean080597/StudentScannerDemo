@@ -9,7 +9,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,11 +26,10 @@ import com.luusean.studentscannerlab.database.DaoMaster;
 import com.luusean.studentscannerlab.database.DaoSession;
 import com.luusean.studentscannerlab.database.EventObject;
 import com.luusean.studentscannerlab.database.EventObjectDao;
+import com.luusean.studentscannerlab.event.EventAdapter;
 import com.luusean.studentscannerlab.student.Student;
-import com.luusean.studentscannerlab.student.StudentAdapter;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -45,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private ArrayList<Student> ls_students;
+
     private final int REQUEST_CODE = 1997;
 
     @Override
@@ -144,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 //dismiss dialog
                 if(wantToCloseDialog){
-                    //save to DB & reload recyclerView
+                    //save to Table Event DB & reload recyclerView
                     eventObject = new EventObject(null, edtEventName.getText().toString(), null);
                     eventObjectDao.insert(eventObject);
 

@@ -8,7 +8,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,7 +26,6 @@ import com.luusean.studentscannerlab.database.EventStudentObject;
 import com.luusean.studentscannerlab.database.EventStudentObjectDao;
 import com.luusean.studentscannerlab.database.StudentObject;
 import com.luusean.studentscannerlab.database.StudentObjectDao;
-import com.luusean.studentscannerlab.student.Student;
 import com.luusean.studentscannerlab.student.StudentAdapter;
 
 import java.util.ArrayList;

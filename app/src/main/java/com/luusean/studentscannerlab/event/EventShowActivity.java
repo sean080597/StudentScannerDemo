@@ -5,8 +5,11 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.luusean.studentscannerlab.R;
 import com.luusean.studentscannerlab.database.DaoMaster;
@@ -81,6 +84,12 @@ public class EventShowActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.event_show_menu, menu);
+        return true;
+    }
+
     //initiate EventStudentObject DB
     private EventStudentObjectDao initEventStudentDb() {
         //create db file if not exist
@@ -103,5 +112,10 @@ public class EventShowActivity extends AppCompatActivity {
         DaoMaster master = new DaoMaster(db);//create masterDao
         DaoSession masterSession = master.newSession();//create session
         return masterSession.getStudentObjectDao();
+    }
+
+    //MenuItem - export to excel
+    public void onExportAction(MenuItem mi) {
+        Toast.makeText(this, "Coming soon", Toast.LENGTH_LONG).show();
     }
 }

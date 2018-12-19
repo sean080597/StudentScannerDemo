@@ -24,6 +24,8 @@ import com.luusean.studentscannerlab.database.EventObject;
 import com.luusean.studentscannerlab.database.EventObjectDao;
 import com.luusean.studentscannerlab.database.EventStudentObject;
 import com.luusean.studentscannerlab.database.EventStudentObjectDao;
+import com.luusean.studentscannerlab.database.StudentObject;
+import com.luusean.studentscannerlab.database.StudentObjectDao;
 import com.luusean.studentscannerlab.student.Student;
 import com.luusean.studentscannerlab.student.StudentAdapter;
 
@@ -39,9 +41,11 @@ public class ScannerActivity extends AppCompatActivity {
     private EventObject eventObject;
     private EventStudentObject eventStudentObject;
     private EventStudentObjectDao eventStudentObjectDao;
+    private StudentObjectDao studentObjectDao;
+    private StudentObject studentObject;
 
-    private ArrayList<Student> ls_students;
-    private ArrayList<Student> ls_stored_students;
+    private List<StudentObject> ls_students;
+    private List<StudentObject> ls_stored_students;
     private RecyclerView recyclerView;
 
     private Long event_id; //to save scanned student to this event id
@@ -55,18 +59,15 @@ public class ScannerActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.rev_stored_students);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        ls_stored_students = new ArrayList<>();
-
-        //receive ls_r
-        Bundle bundle = getIntent().getExtras();
-        assert bundle != null;
-        ls_students = bundle.getParcelableArrayList("list");
 
         //[GreenDAO] initiate
         eventObjectDao = initEventObjectDb();
         eventStudentObjectDao = initEventStudentDb();
+        studentObjectDao = initStudentObjectDb();
 
         event_id = getMaxEventId(eventObjectDao).getId();
+        ls_students = studentObjectDao.queryBuilder().orderDesc(StudentObjectDao.Properties.Lname).build().list();
+        ls_stored_students = new ArrayList<>();
     }
 
     private void initCameraScan(){
@@ -89,9 +90,10 @@ public class ScannerActivity extends AppCompatActivity {
                 Toast.makeText(this, "Cancelled", Toast.LENGTH_LONG).show();
             } else {
                 boolean isFound = false;//check if found student
-                for (Student s : ls_students) {
+                for (StudentObject s : ls_students) {
                     if (s.getId().equals(intentResult.getContents())) {
-                        ls_stored_students.add(new Student(
+                        ls_stored_students.add(new StudentObject(
+                                null,
                                 s.getId(),
                                 s.getFname(),
                                 s.getLname(),
@@ -126,8 +128,8 @@ public class ScannerActivity extends AppCompatActivity {
     }
 
     // Comparator for Ascending Order
-    public static Comparator<Student> StudentsAscComparator = new Comparator<Student>() {
-        public int compare(Student s1, Student s2) {
+    public static Comparator<StudentObject> StudentsAscComparator = new Comparator<StudentObject>() {
+        public int compare(StudentObject s1, StudentObject s2) {
             String sub1 = s1.getLname();
             String sub2 = s2.getLname();
             return sub1.compareToIgnoreCase(sub2);
@@ -173,8 +175,8 @@ public class ScannerActivity extends AppCompatActivity {
         initCameraScan();
     }
 
-    private boolean isLsStudentsContains(ArrayList<Student> ls_students, String stuid) {
-        for (Student s : ls_students) {
+    private boolean isLsStudentsContains(List<StudentObject> ls_students, String stuid) {
+        for (StudentObject s : ls_students) {
             if(s.getId().equals(stuid)) return true;
         }
         return false;
@@ -258,5 +260,17 @@ public class ScannerActivity extends AppCompatActivity {
     private EventObject getMaxEventId(EventObjectDao eventObjectDao){
         List<EventObject> ls_es = eventObjectDao.queryBuilder().orderDesc(EventObjectDao.Properties.Id).limit(1).list();
         return ls_es.get(0);
+    }
+
+    //initiate EventObject DB
+    private StudentObjectDao initStudentObjectDb() {
+        //create db file if not exist
+        String DB_NAME = "student_db";
+        DaoMaster.DevOpenHelper masterHelper = new DaoMaster.DevOpenHelper(this, DB_NAME, null);
+        //get the created db file
+        SQLiteDatabase db = masterHelper.getWritableDatabase();
+        DaoMaster master = new DaoMaster(db);//create masterDao
+        DaoSession masterSession = master.newSession();//create session
+        return masterSession.getStudentObjectDao();
     }
 }

@@ -9,11 +9,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -26,10 +28,11 @@ import com.luusean.studentscannerlab.database.DaoMaster;
 import com.luusean.studentscannerlab.database.DaoSession;
 import com.luusean.studentscannerlab.database.EventObject;
 import com.luusean.studentscannerlab.database.EventObjectDao;
+import com.luusean.studentscannerlab.database.StudentObject;
+import com.luusean.studentscannerlab.database.StudentObjectDao;
 import com.luusean.studentscannerlab.event.EventAdapter;
-import com.luusean.studentscannerlab.student.Student;
+import com.luusean.studentscannerlab.student.StudentAdapter;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -40,9 +43,12 @@ public class MainActivity extends AppCompatActivity {
     //DAO --> Data Access Object
     private EventObjectDao eventObjectDao;//sql access object
     private EventObject eventObject;
+    private StudentObjectDao studentObjectDao;
+    private StudentObject studentObject;
 
+    private TextView txtEmpty;
     private RecyclerView recyclerView;
-    private ArrayList<Student> ls_students;
+    private List<StudentObject> ls_so;
 
     private final int REQUEST_CODE = 1997;
 
@@ -55,9 +61,14 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycleView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        txtEmpty = findViewById(R.id.empty_view);
 
         //Initialise DAO
         eventObjectDao = initEventObjectDb();
+        studentObjectDao = initStudentObjectDb();
+
+        //get list students offline
+        ls_so = studentObjectDao.queryBuilder().orderAsc(StudentObjectDao.Properties.Lname).build().list();
 
         //FireBase
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -71,27 +82,57 @@ public class MainActivity extends AppCompatActivity {
                 if(e != null){
                     Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }else{
-                    ls_students = new ArrayList<>();
                     assert queryDocumentSnapshots != null;
+                    //check if not have student & update offline
                     for (DocumentSnapshot doc : queryDocumentSnapshots){
-                        ls_students.add(new Student(
-                                doc.getId(),
-                                doc.getString("fname"),
-                                doc.getString("lname"),
-                                doc.getString("class")
-                        ));
+                        if(!isLsStudentsContains(ls_so, doc.getId())){
+                            studentObject = new StudentObject(
+                                    null, doc.getId(), doc.getString("fname"),
+                                    doc.getString("lname"), doc.getString("class")
+                            );
+                            studentObjectDao.insert(studentObject);
+                        }
                     }
-
-//                    Collections.sort(ls_students, StudentsAscComparator);
-//                    StudentAdapter adapter = new StudentAdapter(MainActivity.this, ls_students);
+                    //check if offline have redundant student & delete it
+                    for(StudentObject so : ls_so){
+                        Boolean isExists = false;
+                        for (DocumentSnapshot doc : queryDocumentSnapshots){
+                            if(so.getId().equals(doc.getId())){
+                                isExists = true;
+                                break;
+                            }
+                        }
+                        if(!isExists) {
+                            //get student to delete
+                            StudentObject delete_so = studentObjectDao.queryBuilder()
+                                    .where(StudentObjectDao.Properties.Id.eq(so.getId()))
+                                    .limit(1).list().get(0);
+                            studentObjectDao.delete(delete_so);
+                        }
+                    }
+                    //get list students offline after updating
+//                    ls_so = studentObjectDao.queryBuilder().orderAsc(StudentObjectDao.Properties.Lname).build().list();
+//                    StudentAdapter adapter = new StudentAdapter(MainActivity.this, ls_so);
 //                    recyclerView.setAdapter(adapter);
                 }
             }
         });
 
-        List<EventObject> ls_es = eventObjectDao.queryBuilder().orderDesc(EventObjectDao.Properties.Id).build().list();
-        EventAdapter adapter = new EventAdapter(MainActivity.this, ls_es);
-        recyclerView.setAdapter(adapter);
+        //get list students offline --> get above
+//        ls_so = studentObjectDao.queryBuilder().orderAsc(StudentObjectDao.Properties.Lname).build().list();
+//        StudentAdapter adapter = new StudentAdapter(MainActivity.this, ls_so);
+
+        List<EventObject> ls_events = eventObjectDao.queryBuilder()
+                .orderDesc(EventObjectDao.Properties.Id).build().list();
+        if(ls_events.isEmpty()){
+            recyclerView.setVisibility(View.GONE);
+            txtEmpty.setVisibility(View.VISIBLE);
+        }else{
+            recyclerView.setVisibility(View.VISIBLE);
+            txtEmpty.setVisibility(View.GONE);
+            EventAdapter adapter = new EventAdapter(this, ls_events);
+            recyclerView.setAdapter(adapter);
+        }
     }
 
     @Override
@@ -100,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
     }
-    //action for menu item - add
+    //action for menu item - add new event
     public void onAddAction(MenuItem mi) {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Create Event");
@@ -152,9 +193,6 @@ public class MainActivity extends AppCompatActivity {
 
                     //move to ScannerActivity
                     Intent intent = new Intent(MainActivity.this, ScannerActivity.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putParcelableArrayList("list", ls_students);
-                    intent.putExtras(bundle);
                     startActivityForResult(intent, REQUEST_CODE);
                 }
             }
@@ -172,14 +210,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Comparator for Ascending Order
-    public static Comparator<Student> StudentsAscComparator = new Comparator<Student>() {
-        public int compare(Student s1, Student s2) {
-            String sub1 = s1.getLname();
-            String sub2 = s2.getLname();
-            return sub1.compareToIgnoreCase(sub2);
+    //check if list contains student
+    private boolean isLsStudentsContains(List<StudentObject> ls_students, String stuid) {
+        for (StudentObject s : ls_students) {
+            if(s.getId().equals(stuid)) return true;
         }
-    };
+        return false;
+    }
 
     //initiate EventObject DB
     private EventObjectDao initEventObjectDb() {
@@ -191,5 +228,17 @@ public class MainActivity extends AppCompatActivity {
         DaoMaster master = new DaoMaster(db);//create masterDao
         DaoSession masterSession = master.newSession();//create session
         return masterSession.getEventObjectDao();
+    }
+
+    //initiate EventObject DB
+    private StudentObjectDao initStudentObjectDb() {
+        //create db file if not exist
+        String DB_NAME = "student_db";
+        DaoMaster.DevOpenHelper masterHelper = new DaoMaster.DevOpenHelper(this, DB_NAME, null);
+        //get the created db file
+        SQLiteDatabase db = masterHelper.getWritableDatabase();
+        DaoMaster master = new DaoMaster(db);//create masterDao
+        DaoSession masterSession = master.newSession();//create session
+        return masterSession.getStudentObjectDao();
     }
 }

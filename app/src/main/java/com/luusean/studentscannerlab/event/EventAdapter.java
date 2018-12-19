@@ -1,6 +1,10 @@
 package com.luusean.studentscannerlab.event;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -8,11 +12,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.luusean.studentscannerlab.R;
 import com.luusean.studentscannerlab.database.EventObject;
+import com.luusean.studentscannerlab.student.Student;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> {
@@ -35,15 +40,17 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
     }
 
     @Override
-    public void onBindViewHolder(@NonNull EventAdapter.ViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull EventAdapter.ViewHolder holder, @SuppressLint("RecyclerView") final int position) {
         EventObject e = listEvents.get(position);
         holder.txtEventName.setText(e.getName());
-        holder.txtVenue.setText("Hội trường A.08.20");
+        holder.txtVenue.setText(R.string.hall_a0820);
 
         holder.linear_show_event.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(context, "You clicked " + listEvents.get(position).getName(), Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(context, EventShowActivity.class);
+                intent.putExtra("event_id", listEvents.get(position).getId());
+                context.startActivity(intent);
             }
         });
     }

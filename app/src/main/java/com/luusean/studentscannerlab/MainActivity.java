@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
                 if(e != null){
-                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 }else{
                     assert queryDocumentSnapshots != null;
                     //check if not have student & update offline
@@ -139,11 +139,11 @@ public class MainActivity extends AppCompatActivity {
     }
     //action for menu item - add new event
     public void onAddAction(MenuItem mi) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Create Event");
         builder.setMessage("Enter your event name");
 
-        final EditText edtEventName = new EditText(MainActivity.this);
+        final EditText edtEventName = new EditText(this);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.MATCH_PARENT

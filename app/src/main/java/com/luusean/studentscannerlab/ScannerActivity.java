@@ -91,7 +91,7 @@ public class ScannerActivity extends AppCompatActivity {
         IntentResult intentResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
         if (intentResult != null) {
             if (intentResult.getContents() == null) {
-                Toast.makeText(this, "Cancelled", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
             } else {
                 boolean isFound = false;//check if found student
                 for (StudentObject s : ls_students) {
@@ -118,15 +118,15 @@ public class ScannerActivity extends AppCompatActivity {
                             recyclerView.setVisibility(View.VISIBLE);
                             txtEmpty.setVisibility(View.GONE);
                         }
-                        Toast.makeText(this, "Found: " + intentResult.getContents(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "Found: " + intentResult.getContents(), Toast.LENGTH_SHORT).show();
                         break;
                     }
                 }
                 if (!isFound) {
                     if(isLsStudentsContains(ls_stored_students, intentResult.getContents())){
-                        Toast.makeText(this, "Scanned: " + intentResult.getContents(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "Scanned: " + intentResult.getContents(), Toast.LENGTH_SHORT).show();
                     }else{
-                        Toast.makeText(this, "Not found: " + intentResult.getContents(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "Not found: " + intentResult.getContents(), Toast.LENGTH_SHORT).show();
                     }
                 }
 
@@ -153,12 +153,12 @@ public class ScannerActivity extends AppCompatActivity {
     }
 
     public void onExportAction(MenuItem mi) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(ScannerActivity.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Export .xlsx");
         builder.setMessage("Enter name to export(.xlsx)");
         builder.setCancelable(false);
 
-        final EditText edtNameExcel = new EditText(ScannerActivity.this);
+        final EditText edtNameExcel = new EditText(this);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.MATCH_PARENT

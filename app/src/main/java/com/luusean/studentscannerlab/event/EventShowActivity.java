@@ -54,6 +54,9 @@ public class EventShowActivity extends AppCompatActivity {
     private String pathToSaveExcelFile;
     private String excelFileName;
 
+    //list to show students of the event
+    List<StudentObject> lsToShow;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,7 +84,7 @@ public class EventShowActivity extends AppCompatActivity {
         List<StudentObject> ls_so = studentObjectDao.queryBuilder().build().list();
 
         //list students after match 2 lists above
-        List<StudentObject> lsToShow = new ArrayList<>();
+        lsToShow = new ArrayList<>();
         for(EventStudentObject es : ls_es){
             for(StudentObject so : ls_so){
                 if(so.getId().equals(es.getStu_id())){
@@ -199,12 +202,19 @@ public class EventShowActivity extends AppCompatActivity {
         }
         boolean success = false;
 
-        //New Workbook
+        //New Workbook - .xls file
         Workbook wb = new HSSFWorkbook();
+        //create font
+        Font titleFont = wb.createFont();
+        titleFont.setBoldweight(Font.BOLDWEIGHT_BOLD);
+        titleFont.setFontHeightInPoints((short) 16);
 
-        Font headerFont = wb.createFont();
-        headerFont.setBoldweight(Font.BOLDWEIGHT_BOLD);
-        headerFont.setFontHeightInPoints((short) 16);
+        Font headFont = wb.createFont();
+        headFont.setBoldweight(Font.BOLDWEIGHT_BOLD);
+        headFont.setFontHeightInPoints((short) 14);
+
+        Font dataFont = wb.createFont();
+        dataFont.setFontHeightInPoints((short) 11);
 
         //cell style for title
         CellStyle style_title = wb.createCellStyle();
@@ -212,7 +222,7 @@ public class EventShowActivity extends AppCompatActivity {
         style_title.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
         style_title.setAlignment(CellStyle.ALIGN_CENTER);
         style_title.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
-        style_title.setFont(headerFont);
+        style_title.setFont(titleFont);
         style_title.setBorderTop(HSSFCellStyle.BORDER_MEDIUM);
         style_title.setBorderRight(HSSFCellStyle.BORDER_MEDIUM);
         style_title.setBorderBottom(HSSFCellStyle.BORDER_MEDIUM);
@@ -226,12 +236,23 @@ public class EventShowActivity extends AppCompatActivity {
         style_field.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
         style_field.setAlignment(CellStyle.ALIGN_CENTER);
         style_field.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
-        style_field.setFont(headerFont);
+        style_field.setFont(headFont);
         style_field.setBorderTop(HSSFCellStyle.BORDER_MEDIUM);
         style_field.setBorderRight(HSSFCellStyle.BORDER_MEDIUM);
         style_field.setBorderBottom(HSSFCellStyle.BORDER_MEDIUM);
         style_field.setBorderLeft(HSSFCellStyle.BORDER_MEDIUM);
         style_field.setWrapText(true);
+
+        //cell style for header row
+        CellStyle style_data = wb.createCellStyle();
+        style_data.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
+        style_data.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
+        style_data.setFont(dataFont);
+        style_data.setBorderTop(HSSFCellStyle.BORDER_MEDIUM);
+        style_data.setBorderRight(HSSFCellStyle.BORDER_MEDIUM);
+        style_data.setBorderBottom(HSSFCellStyle.BORDER_MEDIUM);
+        style_data.setBorderLeft(HSSFCellStyle.BORDER_MEDIUM);
+        style_data.setWrapText(true);
 
         //new sheet
         Sheet new_sheet;
@@ -266,6 +287,25 @@ public class EventShowActivity extends AppCompatActivity {
         new_sheet.setColumnWidth(0, 5000);
         new_sheet.setColumnWidth(1, 5000);
         new_sheet.setColumnWidth(2, 5000);
+
+        //insert data from lsToShow to excel file
+        short count = 1;
+        for(StudentObject so : lsToShow){
+            Row rowToAdd = new_sheet.createRow(++count);
+            rowToAdd.setHeight((short) 250);
+
+            c = rowToAdd.createCell(0);
+            c.setCellValue(so.getId());
+            c.setCellStyle(style_data);
+
+            c = rowToAdd.createCell(1);
+            c.setCellValue(so.getFname() + " " + so.getLname());
+            c.setCellStyle(style_data);
+
+            c = rowToAdd.createCell(2);
+            c.setCellValue(so.getClassroom());
+            c.setCellStyle(style_data);
+        }
 
         //Create file path for saving & assign extension ".xls"
         pathToSaveExcelFile = filePath;

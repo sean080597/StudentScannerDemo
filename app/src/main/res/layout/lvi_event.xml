@@ -14,30 +14,47 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
-            android:id="@+id/linear_show_event"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="8dp">
-
-            <TextView
-                android:id="@+id/txt_event_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:text="Event 1"
-                android:textAppearance="@style/TextAppearance.AppCompat.Headline" />
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:weightSum="10">
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:id="@+id/linear_show_event"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:layout_marginEnd="4dp"
+                android:layout_marginStart="4dp"
+                android:layout_weight="9"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txt_event_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:text="Event 1"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Headline" />
+
                 <TextView
                     android:id="@+id/txt_venue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hoi truong" />
+                    android:text="@string/hall_a0820" />
             </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btn_event_delete"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="end"
+                android:layout_marginEnd="4dp"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_delete_forever"
+                android:contentDescription="@null" />
         </LinearLayout>
     </android.support.v7.widget.CardView>
 </android.support.constraint.ConstraintLayout>

@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
             //get list students offline --> get above
 //            ls_so = studentObjectDao.queryBuilder().orderAsc(StudentObjectDao.Properties.Lname).build().list();
 //            StudentAdapter adapter = new StudentAdapter(MainActivity.this, ls_so);
-            EventAdapter adapter = new EventAdapter(this, ls_events);
+            EventAdapter adapter = new EventAdapter(this, ls_events );
             recyclerView.setAdapter(adapter);
         }
     }
@@ -194,15 +194,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    //method to reload list events
+    private void reloadListEvents(){
+        //reload list events
+        List<EventObject> ls_es = eventObjectDao.queryBuilder().orderDesc(EventObjectDao.Properties.Id).build().list();
+        EventAdapter adapter = new EventAdapter(MainActivity.this, ls_es);
+        recyclerView.setAdapter(adapter);
+    }
+
     //reload list events when back from ScannerActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == REQUEST_CODE && resultCode == RESULT_OK){
-            //reload list events
-            List<EventObject> ls_es = eventObjectDao.queryBuilder().orderDesc(EventObjectDao.Properties.Id).build().list();
-            EventAdapter adapter = new EventAdapter(MainActivity.this, ls_es);
-            recyclerView.setAdapter(adapter);
+            reloadListEvents();
         }
     }
 
@@ -236,5 +241,28 @@ public class MainActivity extends AppCompatActivity {
         DaoMaster master = new DaoMaster(db);//create masterDao
         DaoSession masterSession = master.newSession();//create session
         return masterSession.getStudentObjectDao();
+    }
+    //method delete event to use in adapter
+    public void deleteEvent(final EventObject eventObject){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(false);
+        builder.setTitle("Delete event");
+        builder.setMessage(R.string.do_u_wan_del_event);
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                eventObjectDao.delete(eventObject);
+                reloadListEvents();
+                Toast.makeText(MainActivity.this, R.string.delete_successfully, Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //Do nothing
+            }
+        });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 }

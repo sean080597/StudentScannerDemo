@@ -8,9 +8,12 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.luusean.studentscannerlab.MainActivity;
 import com.luusean.studentscannerlab.R;
 import com.luusean.studentscannerlab.database.EventObject;
 
@@ -32,7 +35,18 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
     @Override
     public EventAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = inflater.inflate(R.layout.lvi_event, parent, false);
-        return new EventAdapter.ViewHolder(v);
+        return new ViewHolder(v, new MyClickListener() {
+            @Override
+            public void onEdit(int position) {
+                // Implement your functionality for onDelete here
+            }
+
+            @Override
+            public void onDelete(int position) {
+                EventObject e = listEvents.get(position);
+                ((MainActivity)context).deleteEvent(e);
+            }
+        });
     }
 
     @Override
@@ -56,15 +70,39 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
         return listEvents.size();
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+        MyClickListener listener;
+
         TextView txtEventName;
         TextView txtVenue;
         LinearLayout linear_show_event;
-        ViewHolder(View itemView) {
+        ImageButton btnDeleteEvent;
+
+        ViewHolder(View itemView, MyClickListener listener) {
             super(itemView);
             txtEventName = itemView.findViewById(R.id.txt_event_name);
             txtVenue = itemView.findViewById(R.id.txt_venue);
             linear_show_event = itemView.findViewById(R.id.linear_show_event);
+            btnDeleteEvent = itemView.findViewById(R.id.btn_event_delete);
+            this.listener = listener;
+
+            btnDeleteEvent.setOnClickListener(this);
         }
+
+        @Override
+        public void onClick(View v) {
+            switch (v.getId()){
+                case R.id.btn_event_delete:
+                    listener.onDelete(this.getLayoutPosition());
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    public interface MyClickListener {
+        void onEdit(int position);
+        void onDelete(int position);
     }
 }

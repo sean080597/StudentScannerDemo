@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == REQUEST_CODE && resultCode == RESULT_OK){
+        if(resultCode == RESULT_OK){
             reloadListEvents();
         }
     }
@@ -278,8 +278,10 @@ public class MainActivity extends AppCompatActivity {
                 //delete event
                 eventObjectDao.delete(eventObject);
                 reloadListEvents();
-                //check if deleted all list
-                if(ls_es.isEmpty()) {
+                //check if deleted all list events
+                List<EventObject> ls_events = eventObjectDao.queryBuilder()
+                        .orderDesc(EventObjectDao.Properties.Id).build().list();
+                if(ls_events.isEmpty()) {
                     recyclerView.setVisibility(View.GONE);
                     txtEmpty.setVisibility(View.VISIBLE);
                 }

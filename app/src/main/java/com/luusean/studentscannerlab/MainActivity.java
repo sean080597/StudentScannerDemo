@@ -27,6 +27,8 @@ import com.luusean.studentscannerlab.database.DaoMaster;
 import com.luusean.studentscannerlab.database.DaoSession;
 import com.luusean.studentscannerlab.database.EventObject;
 import com.luusean.studentscannerlab.database.EventObjectDao;
+import com.luusean.studentscannerlab.database.EventStudentObject;
+import com.luusean.studentscannerlab.database.EventStudentObjectDao;
 import com.luusean.studentscannerlab.database.StudentObject;
 import com.luusean.studentscannerlab.database.StudentObjectDao;
 import com.luusean.studentscannerlab.event.EventAdapter;
@@ -42,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private EventObject eventObject;
     private StudentObjectDao studentObjectDao;
     private StudentObject studentObject;
+    private EventStudentObjectDao eventStudentObjectDao;
 
     private RecyclerView recyclerView;
     private List<StudentObject> ls_so;
@@ -62,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
         //Initialise DAO
         eventObjectDao = initEventObjectDb();
         studentObjectDao = initStudentObjectDb();
+        eventStudentObjectDao = initEventStudentDb();
 
         //get list students offline
         ls_so = studentObjectDao.queryBuilder().orderAsc(StudentObjectDao.Properties.Lname).build().list();
@@ -242,6 +246,19 @@ public class MainActivity extends AppCompatActivity {
         DaoSession masterSession = master.newSession();//create session
         return masterSession.getStudentObjectDao();
     }
+
+    //initiate EventStudentObject DB
+    private EventStudentObjectDao initEventStudentDb() {
+        //create db file if not exist
+        String DB_NAME = "event_student_db";
+        DaoMaster.DevOpenHelper masterHelper = new DaoMaster.DevOpenHelper(this, DB_NAME, null);
+        //get the created db file
+        SQLiteDatabase db = masterHelper.getWritableDatabase();
+        DaoMaster master = new DaoMaster(db);//create masterDao
+        DaoSession masterSession = master.newSession();//create session
+        return masterSession.getEventStudentObjectDao();
+    }
+
     //method delete event to use in adapter
     public void deleteEvent(final EventObject eventObject){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -251,6 +268,13 @@ public class MainActivity extends AppCompatActivity {
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                //get list of students of event id
+                List<EventStudentObject> ls_es = eventStudentObjectDao.queryBuilder()
+                        .where(EventStudentObjectDao.Properties.Event_id.eq(eventObject.getId()))
+                        .list();
+                //delete all of list
+                eventStudentObjectDao.deleteInTx(ls_es);
+                //delete event
                 eventObjectDao.delete(eventObject);
                 reloadListEvents();
                 Toast.makeText(MainActivity.this, R.string.delete_successfully, Toast.LENGTH_SHORT).show();

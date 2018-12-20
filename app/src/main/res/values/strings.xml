@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">StudentScannerLab</string>
+    <string name="app_name">Student Scanner</string>
     <string name="txt_title">Title</string>
     <string name="txt_desc">Description</string>
     <string name="search">Search</string>

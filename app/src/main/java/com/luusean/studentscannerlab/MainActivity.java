@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private List<StudentObject> ls_so;
+    private TextView txtEmpty;
 
     private final int REQUEST_CODE = 1997;
 
@@ -60,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycleView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        TextView txtEmpty = findViewById(R.id.empty_view);
+        txtEmpty = findViewById(R.id.empty_view);
 
         //Initialise DAO
         eventObjectDao = initEventObjectDb();
@@ -277,6 +278,11 @@ public class MainActivity extends AppCompatActivity {
                 //delete event
                 eventObjectDao.delete(eventObject);
                 reloadListEvents();
+                //check if deleted all list
+                if(ls_es.isEmpty()) {
+                    recyclerView.setVisibility(View.GONE);
+                    txtEmpty.setVisibility(View.VISIBLE);
+                }
                 Toast.makeText(MainActivity.this, R.string.delete_successfully, Toast.LENGTH_SHORT).show();
             }
         });

@@ -51,11 +51,14 @@ public class EventShowActivity extends AppCompatActivity {
     private EventStudentObjectDao eventStudentObjectDao;
     private StudentObjectDao studentObjectDao;
 
+    private RecyclerView recyclerView;
+    //list to show students of the event
+    private List<StudentObject> lsToShow;
+    private Long event_id;
+    private TextView txtEmpty;
+
     private String pathToSaveExcelFile;
     private String excelFileName;
-
-    //list to show students of the event
-    List<StudentObject> lsToShow;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,17 +66,17 @@ public class EventShowActivity extends AppCompatActivity {
         setContentView(R.layout.activity_event_show);
 
         //mapping recyclerView
-        RecyclerView recyclerView = findViewById(R.id.rev_show_stu_of_event);
+        recyclerView = findViewById(R.id.rev_show_stu_of_event);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        TextView txtEmpty = findViewById(R.id.empty_view);
+        txtEmpty = findViewById(R.id.empty_view);
 
         //Initialise DAO
         eventStudentObjectDao = initEventStudentDb();
         studentObjectDao = initStudentObjectDb();
 
         //get event id from intent
-        Long event_id = Objects.requireNonNull(getIntent().getExtras()).getLong("event_id");
+        event_id = Objects.requireNonNull(getIntent().getExtras()).getLong("event_id");
 
         //list id of student to lockup on listStudents
         List<EventStudentObject> ls_es = eventStudentObjectDao.queryBuilder()
@@ -341,5 +344,50 @@ public class EventShowActivity extends AppCompatActivity {
     public static boolean isExternalStorageReadOnly() {
         String extStorageState = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED_READ_ONLY.equals(extStorageState);
+    }
+
+    //method delete student to use in adapter
+    public void deleteStudent(final StudentObject studentObject){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(false);
+        builder.setTitle("Delete event");
+        builder.setMessage(R.string.do_u_wan_del_stu);
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //delete student in lsToShow to show updated list
+                for(StudentObject so : lsToShow){
+                    if(so.getId().equals(studentObject.getId())){
+                        lsToShow.remove(so);
+                        break;
+                    }
+                }
+                //delete event student
+                EventStudentObject eso = eventStudentObjectDao.queryBuilder()
+                        .where(EventStudentObjectDao.Properties.Event_id.eq(event_id),
+                                EventStudentObjectDao.Properties.Stu_id.eq(studentObject.getId()))
+                        .limit(1).list().get(0);
+                eventStudentObjectDao.delete(eso);
+
+                //set adapter
+                StudentAdapter adapter = new StudentAdapter(EventShowActivity.this, lsToShow);
+                recyclerView.setAdapter(adapter);
+
+                //check if deleted all list
+                if(lsToShow.isEmpty()) {
+                    recyclerView.setVisibility(View.GONE);
+                    txtEmpty.setVisibility(View.VISIBLE);
+                }
+                Toast.makeText(EventShowActivity.this, R.string.delete_successfully, Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // TODO Auto-generated method stub
+            }
+        });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 }

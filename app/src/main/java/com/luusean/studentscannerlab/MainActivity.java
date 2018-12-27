@@ -17,25 +17,16 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.FirebaseFirestoreSettings;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.luusean.studentscannerlab.database.DaoMaster;
 import com.luusean.studentscannerlab.database.DaoSession;
 import com.luusean.studentscannerlab.database.EventObject;
 import com.luusean.studentscannerlab.database.EventObjectDao;
 import com.luusean.studentscannerlab.database.EventStudentObject;
 import com.luusean.studentscannerlab.database.EventStudentObjectDao;
-import com.luusean.studentscannerlab.database.StudentObject;
 import com.luusean.studentscannerlab.database.StudentObjectDao;
 import com.luusean.studentscannerlab.event.EventAdapter;
 
 import java.util.List;
-
-import javax.annotation.Nullable;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,11 +34,9 @@ public class MainActivity extends AppCompatActivity {
     private EventObjectDao eventObjectDao;//sql access object
     private EventObject eventObject;
     private StudentObjectDao studentObjectDao;
-    private StudentObject studentObject;
     private EventStudentObjectDao eventStudentObjectDao;
 
     private RecyclerView recyclerView;
-    private List<StudentObject> ls_so;
     private TextView txtEmpty;
 
     private final int REQUEST_CODE = 1997;
@@ -68,57 +57,6 @@ public class MainActivity extends AppCompatActivity {
         studentObjectDao = initStudentObjectDb();
         eventStudentObjectDao = initEventStudentDb();
 
-        //get list students offline
-        ls_so = studentObjectDao.queryBuilder().orderAsc(StudentObjectDao.Properties.Lname).build().list();
-
-        //FireBase
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
-                .setPersistenceEnabled(true)
-                .build();
-        db.setFirestoreSettings(settings);
-        db.collection("student").addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
-                if(e != null){
-                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }else{
-                    assert queryDocumentSnapshots != null;
-                    //check if not have student & update offline
-                    for (DocumentSnapshot doc : queryDocumentSnapshots){
-                        if(!isLsStudentsContains(ls_so, doc.getId())){
-                            studentObject = new StudentObject(
-                                    null, doc.getId(), doc.getString("fname"),
-                                    doc.getString("lname"), doc.getString("class")
-                            );
-                            studentObjectDao.insert(studentObject);
-                        }
-                    }
-                    //check if offline have redundant student & delete it
-                    for(StudentObject so : ls_so){
-                        Boolean isExists = false;
-                        for (DocumentSnapshot doc : queryDocumentSnapshots){
-                            if(so.getId().equals(doc.getId())){
-                                isExists = true;
-                                break;
-                            }
-                        }
-                        if(!isExists) {
-                            //get student to delete
-                            StudentObject delete_so = studentObjectDao.queryBuilder()
-                                    .where(StudentObjectDao.Properties.Id.eq(so.getId()))
-                                    .limit(1).list().get(0);
-                            studentObjectDao.delete(delete_so);
-                        }
-                    }
-                    //get list students offline after updating
-//                    ls_so = studentObjectDao.queryBuilder().orderAsc(StudentObjectDao.Properties.Lname).build().list();
-//                    StudentAdapter adapter = new StudentAdapter(MainActivity.this, ls_so);
-//                    recyclerView.setAdapter(adapter);
-                }
-            }
-        });
-
         List<EventObject> ls_events = eventObjectDao.queryBuilder()
                 .orderDesc(EventObjectDao.Properties.Id).build().list();
         if(ls_events.isEmpty()){
@@ -129,8 +67,6 @@ public class MainActivity extends AppCompatActivity {
             txtEmpty.setVisibility(View.GONE);
 
             //get list students offline --> get above
-//            ls_so = studentObjectDao.queryBuilder().orderAsc(StudentObjectDao.Properties.Lname).build().list();
-//            StudentAdapter adapter = new StudentAdapter(MainActivity.this, ls_so);
             EventAdapter adapter = new EventAdapter(this, ls_events );
             recyclerView.setAdapter(adapter);
         }
@@ -205,6 +141,11 @@ public class MainActivity extends AppCompatActivity {
         List<EventObject> ls_es = eventObjectDao.queryBuilder().orderDesc(EventObjectDao.Properties.Id).build().list();
         EventAdapter adapter = new EventAdapter(MainActivity.this, ls_es);
         recyclerView.setAdapter(adapter);
+        //check if ls_es null to show/hide recyclerView
+        if(!ls_es.isEmpty()) {
+            recyclerView.setVisibility(View.VISIBLE);
+            txtEmpty.setVisibility(View.GONE);
+        }
     }
 
     //reload list events when back from ScannerActivity
@@ -214,14 +155,6 @@ public class MainActivity extends AppCompatActivity {
         if(resultCode == RESULT_OK){
             reloadListEvents();
         }
-    }
-
-    //check if list contains student
-    private boolean isLsStudentsContains(List<StudentObject> ls_students, String stuid) {
-        for (StudentObject s : ls_students) {
-            if(s.getId().equals(stuid)) return true;
-        }
-        return false;
     }
 
     //initiate EventObject DB

@@ -3,6 +3,7 @@ package com.luusean.studentscannerlab;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -34,30 +35,73 @@ public class SplashScreenActivity extends AppCompatActivity {
     private StudentObjectDao studentObjectDao;
     private StudentObject studentObject;
 
+    private SharedPreferences sharedPreferences = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
 
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if(isNetworkAvailable()){
-                    SyncDataOfflineAsyncTasks asyncTasks = new SyncDataOfflineAsyncTasks();
-                    asyncTasks.execute();
-                }else{
-                    Toast.makeText(SplashScreenActivity.this, R.string.internet_not_connected, Toast.LENGTH_SHORT).show();
-                    Toast.makeText(SplashScreenActivity.this, "Will use old Database", Toast.LENGTH_SHORT).show();
-                    gotoMainActivity();
-                }
+        //declare sharedPreferences
+        sharedPreferences = getSharedPreferences("com.luusean.studentscannerlab", MODE_PRIVATE);
+        //check if is firstRun & set true to "firstRun" if not exists
+        if (sharedPreferences.getBoolean("firstRun", true)) {
+            //check if network is available to sync offline data & go to MainActivity inside
+            if(isNetworkAvailable()){
+                SyncDataOfflineAsyncTasks asyncTasks = new SyncDataOfflineAsyncTasks();
+                asyncTasks.execute();
+                //This will call only first time
+                //set false if isn't firstRun && not yet sync
+                sharedPreferences.edit().putBoolean("firstRun", false).apply();
+            }else{
+                Toast.makeText(SplashScreenActivity.this, R.string.internet_not_connected, Toast.LENGTH_SHORT).show();
+                Toast.makeText(SplashScreenActivity.this, "Cannot sync data from Server for first run", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SplashScreenActivity.this, "Will finish here", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SplashScreenActivity.this, "Bye Bye ahihi =))", Toast.LENGTH_SHORT).show();
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        System.exit(0);
+                    }
+                }, 8000);
             }
-        }, 4000);
+        }else{
+            //set delay times
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if(isNetworkAvailable()){
+                        SyncDataOfflineAsyncTasks asyncTasks = new SyncDataOfflineAsyncTasks();
+                        asyncTasks.execute();
+                    }else{
+                        Toast.makeText(SplashScreenActivity.this, R.string.internet_not_connected, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(SplashScreenActivity.this, "Will use old Database", Toast.LENGTH_SHORT).show();
+                        gotoMainActivity();
+                    }
+                }
+            }, 3000);
+        }
+
     }
+
     //move to MainActivity
     private void gotoMainActivity(){
         Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
         startActivity(intent);
         finish();
+    }
+
+    //init spin progress bar
+    private void initProgressBar(){
+        ProgressBar progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.VISIBLE);
+    }
+    //check if network is available
+    private boolean isNetworkAvailable(){
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        assert connectivityManager != null;
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnected();
     }
 
     //initiate Student DB
@@ -80,6 +124,7 @@ public class SplashScreenActivity extends AppCompatActivity {
         return false;
     }
 
+    //AsyncTask for syncing Data on FireBase FireStore to Offline
     @SuppressLint("StaticFieldLeak")
     private class SyncDataOfflineAsyncTasks extends AsyncTask<Void, Void, Void> {
 
@@ -106,21 +151,16 @@ public class SplashScreenActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             Toast.makeText(SplashScreenActivity.this, "Synced Successfully", Toast.LENGTH_SHORT).show();
-            gotoMainActivity();
+            //set delay times
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    gotoMainActivity();
+                }
+            }, 1000);
         }
     }
-    //init spin progress bar
-    private void initProgressBar(){
-        ProgressBar progressBar = findViewById(R.id.progressBar);
-        progressBar.setVisibility(View.VISIBLE);
-    }
-    //check if network is available
-    private boolean isNetworkAvailable(){
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        assert connectivityManager != null;
-        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        return networkInfo != null && networkInfo.isConnected();
-    }
+
     //sync data to offline GreenDao
     private void syncDataToGreenDao(final List<StudentObject> ls_so){
         //FireBase
